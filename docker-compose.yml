@@ -1,0 +1,53 @@
+nginx:
+  image: nginx
+  ports:
+    - 80:80
+    - 443:443
+  links:
+    - wordpress
+  volumes_from:
+   - wordpress
+  volumes:
+    - ./var/log/nginx:/var/log/nginx
+    - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+    - ./wp:/var/www/html
+
+wordpress:
+  image: wordpress:fpm
+  links:
+    - mysql:mysql
+    - memcached
+  environment:
+    WORDPRESS_DB_USER: wordpress
+    WORDPRESS_DB_PASSWORD: password
+    WORDPRESS_DB_NAME: wordpress
+  volumes:
+    - ./wp:/var/www/html
+
+mysql:
+  image: mariadb
+  environment:
+    MYSQL_DATABASE: wordpress
+    MYSQL_USER: wordpress
+    MYSQL_PASSWORD: password
+    MYSQL_ROOT_PASSWORD: password
+
+memcached:
+  image: memcached
+  restart: always
+
+mailhog:
+  image: mailhog/mailhog
+  ports:
+    - 8002:8025
+
+cadvisor:
+  image: google/cadvisor
+  ports:
+    - 8080:8080
+  restart: always
+  volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
